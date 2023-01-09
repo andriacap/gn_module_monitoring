@@ -2,6 +2,60 @@
 CHANGELOG
 =========
 
+0.4.1 (unreleased)
+------------------
+
+**Corrections**
+
+* Correction du modèle Observation détail qui permet d'ajouter des informations sous le niveau observation
+
+0.4.0 (2022-12-21)
+------------------
+
+Nécessite la version 2.11.0 (ou plus) de GeoNature.
+
+**Evolutions**
+
+* Packaging du module (#190)
+* Gestion de la base de données avec Alembic (#190)
+* Améliorations du typage frontend
+
+**Corrections**
+
+* Correction du marqueur Leaflet non visible lors de la création d'un point sur la carte (#187)
+* Peuplement du champs ``gn_monitoring.t_module_complements.type`` avec la valeur ``monitoring_module`` pour les sous-modules de Monitoring (#193)
+* Correction de l'utilisation des modèles de TaxRef
+* Suppression de l'usage de ``MODULE_URL`` dans la configuration du module (https://github.com/PnX-SI/GeoNature/issues/2165)
+
+**⚠️ Notes de version**
+
+Si vous mettez à jour le module, il vous faut passer à Alembic.
+Pour cela, une fois la version 2.11 (ou plus) de GeoNature installée :
+
+* Entrer dans le virtualenv :
+
+.. code-block:: bash
+
+  source ~/geonature/backend/venv/bin/activate
+
+* Installer la nouvelle version de Monitoring avec le paramètre ``--upgrade-db=false`` :
+
+.. code-block:: bash
+
+  geonature install-gn-module --upgrade-db=false <path_to_monitoring> MONITORINGS
+
+* Indiquer à Alembic que votre base de données est en version 0.3.0 :
+
+.. code-block:: bash
+
+  geonature db stamp 362cf9d504ec                   # monitorings 0.3.0
+
+* Mettre à jour la base de données en version 0.4.0 :
+
+.. code-block:: bash
+
+  geonature db upgrade monitorings@head
+
 0.3.0 (2022-11-02)
 ------------------
 
@@ -281,7 +335,7 @@ Nécessite la version 2.5.2 de GeoNature minimum.
 Si vous mettez à jour le module depuis la version 0.1.0 :
 
 * Les fichiers ``custom.json`` ne sont plus utiles (la configuration spécifique à une installation (liste utilisateurs, etc..)
-est désormais gérée dans la base de données, dans la table ``gn_monitoring.t_module_complements``)
+  est désormais gérée dans la base de données, dans la table ``gn_monitoring.t_module_complements``)
 * Dans les fichiers ``config.json``, la variable ``data`` (pour précharger les données (nomenclatures, etc..)) est désormais calculée depuis la configuration.
 * Pour mettre à jour la base de données, il faut exécuter le fichier ``data/migration/migration_0.1.0_0.2.0.sql``
 * Suivez la procédure classique de mise à jour du module (``docs/MAJ.rst``)

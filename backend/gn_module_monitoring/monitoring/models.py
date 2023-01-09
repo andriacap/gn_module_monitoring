@@ -20,6 +20,8 @@ from geonature.core.gn_commons.models import TModules, cor_module_dataset
 from pypnusershub.db.models import User
 from geonature.core.gn_monitoring.models import corVisitObserver
 
+from gn_module_monitoring.monitoring.queries import Query as MonitoringQuery
+
 cor_module_categorie = DB.Table(
     "cor_module_categorie",
     DB.Column(
@@ -54,6 +56,8 @@ cor_site_type_categorie = DB.Table(
 class BibCategorieSite(DB.Model):
     __tablename__ = "bib_categorie_site"
     __table_args__ = {"schema": "gn_monitoring"}
+    query_class = MonitoringQuery
+    
     id_categorie = DB.Column(DB.Integer, primary_key=True, nullable=False, unique=True)
     label = DB.Column(DB.String, nullable=False)
     config = DB.Column(JSONB)
@@ -78,6 +82,13 @@ class TMonitoringObservationDetails(DB.Model):
 
     id_observation = DB.Column(DB.ForeignKey('gn_monitoring.t_observations.id_observation'))
     data = DB.Column(JSONB)
+    uuid_observation_detail = DB.Column(UUID(as_uuid=True), default=uuid4)
+
+    medias = DB.relationship(
+        TMedias,
+        lazy='joined',
+        primaryjoin=(TMedias.uuid_attached_row == uuid_observation_detail),
+        foreign_keys=[TMedias.uuid_attached_row])
 
 
 @serializable
@@ -102,7 +113,7 @@ class TObservations(DB.Model):
         primaryjoin=(TMedias.uuid_attached_row == uuid_observation),
         foreign_keys=[TMedias.uuid_attached_row])
 
-    t_observation_details = DB.relation(
+    observation_details = DB.relation(
         TMonitoringObservationDetails,
         primaryjoin=(id_observation == TMonitoringObservationDetails.id_observation),
         foreign_keys=[TMonitoringObservationDetails.id_observation],
@@ -125,6 +136,9 @@ class TMonitoringObservations(TObservations):
         primary_key=True,
         nullable=False,
         )
+
+
+TBaseVisits.dataset = DB.relationship(TDatasets)
 
 
 @serializable
@@ -169,7 +183,7 @@ class TMonitoringVisits(TBaseVisits):
     )
 
 
-@geoserializable
+@geoserializable(geoCol="geom", idCol="id_base_site")
 class TMonitoringSites(TBaseSites):
 
     __tablename__ = 't_site_complements'
@@ -177,6 +191,7 @@ class TMonitoringSites(TBaseSites):
     __mapper_args__ = {
         'polymorphic_identity': 'monitoring_site',
     }
+    query_class = MonitoringQuery
 
     id_base_site = DB.Column(
         DB.ForeignKey('gn_monitoring.t_base_sites.id_base_site'),
@@ -184,10 +199,6 @@ class TMonitoringSites(TBaseSites):
         primary_key=True
     )
 
-    id_module = DB.Column(
-        DB.ForeignKey('gn_commons.t_modules.id_module'),
-        nullable=False,
-    )
 
     id_sites_group = DB.Column(
         DB.ForeignKey('gn_monitoring.t_sites_groups.id_sites_group',
@@ -234,6 +245,7 @@ class TMonitoringSites(TBaseSites):
 class TMonitoringSitesGroups(DB.Model):
     __tablename__ = 't_sites_groups'
     __table_args__ = {'schema': 'gn_monitoring'}
+    query_class = MonitoringQuery
 
     id_sites_group = DB.Column(
         DB.Integer,
